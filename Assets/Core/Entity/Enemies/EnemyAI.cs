@@ -218,7 +218,7 @@ public class EnemyAI : MonoBehaviour
         Vector2 originalPosition = transform.position;
         float x = playerController.transform.position.x;
         float y = (canAttackVertically) ? playerController.transform.position.y : transform.position.y;
-        Vector2 attackOffset = new Vector2(x, y);// - PLAYER_WIDTH * Vector2.right;//(Vector2)transform.position + (sign * attackDistance * Vector2.right).normalized * attackDistance;
+        Vector2 attackOffset = new Vector2(x, y);
         Tween myTween = rb.DOMove(attackOffset, attackTime);
         enemy.audioSource.PlayOneShot(attackClip);
         yield return myTween.WaitForCompletion();
@@ -235,7 +235,7 @@ public class EnemyAI : MonoBehaviour
     internal virtual void Damage()
     {
         if (canDamagePlayer)
-            playerController.Damage(1, true);
+            playerController.health.Damage(1, true);
     }
     #endregion
 
