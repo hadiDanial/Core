@@ -58,7 +58,7 @@ public class FlyingEnemyAI : EnemyAI
         if (doneAttacking)
         {
             enemy.input = ((Vector2)path.vectorPath[pathIndex] - rb.position).normalized;
-            enemy.SetMovementVector();
+            enemy.SetMovementInput();
         }
     }
     internal override void OnDrawGizmos()

@@ -170,7 +170,7 @@ public class EnemyAI : MonoBehaviour
     internal virtual void EnemyMovement()
     {
         enemy.input = ((Vector2)path.vectorPath[pathIndex] - rb.position).normalized;
-        enemy.SetMovementVector();
+        enemy.SetMovementInput();
         Jump();
     }
 

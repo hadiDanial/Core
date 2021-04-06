@@ -20,7 +20,7 @@ public class Health : MonoBehaviour
     private bool triggerAllKill = true;
     public delegate void Hit(bool heal = false);
     public event Hit OnHit;
-    public delegate void Kill();
+    public delegate void Kill(bool deactivate = true);
     public event Kill OnKill;
     public static event Kill OnAllKill;
 

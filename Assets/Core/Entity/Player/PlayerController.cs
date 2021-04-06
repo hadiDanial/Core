@@ -23,23 +23,6 @@ public class PlayerController : Entity
         transform.position = spawnPosition;
     }
 
-    #region Input
-    public void OnMovement(InputValue value)
-    {
-        if (!IsActive())
-            return;
-        input = value.Get<Vector2>();
-        SetMovementVector();
-    }
-
-    public void OnHorizontal(InputValue value)
-    {
-        if (!IsActive())
-            return;
-        input.x = value.Get<float>();
-        SetMovementVector();
-    }
-
     internal void SetActiveCheckpoint(Checkpoint checkpoint)
     {
         if (currentCheckpoint != null)
@@ -47,18 +30,41 @@ public class PlayerController : Entity
         currentCheckpoint = checkpoint;
     }
 
+    public void OnReset()
+    {
+        if (currentCheckpoint != null)
+            currentCheckpoint.ResetCheckpoint(this);
+        else
+        {
+            UnityEngine.SceneManagement.SceneManager.LoadScene(0);
+        }
+    }
+    internal override void Kill(bool deactivate = true)
+    {
+        base.Kill(false);
+        OnReset();
+    }
+
+    #region Input
+
+    public void OnHorizontal(InputValue value)
+    {
+        if (!IsActive())
+            return;
+        input.x = value.Get<float>();
+        SetMovementInput();
+    }
+
     public void OnVertical(InputValue value)
     {
         if (!IsActive())
             return;
         input.y = value.Get<float>();
-        movementVector = useGravity ? new Vector2(input.x, 0).normalized : input;
+        SetMovementInput();
     }
 
     public void OnJump()
     {
-        if (!IsActive())
-            return;
         Jump();
     }
 
@@ -72,20 +78,10 @@ public class PlayerController : Entity
 
     public void OnGamepadAim(InputValue val)
     {
-        //cursor.SetGamepad(val.Get<Vector2>());
         Vector2 aim = val.Get<Vector2>();
         SetAim(aim);
     }
 
-    public void OnReset()
-    {
-        if (currentCheckpoint != null)
-            currentCheckpoint.ResetCheckpoint(this);
-        else
-        {
-            UnityEngine.SceneManagement.SceneManager.LoadScene(0);
-        }
-    }
 
     private void SetAim(Vector2 aim)
     {
@@ -97,18 +93,5 @@ public class PlayerController : Entity
         prevAim = aim;
     }
     #endregion
-
-    internal override void Kill()
-    {
-        // TODO - Kill the Entity
-        currentEntityState = EntityState.Dead;
-        rb.velocity = Vector2.zero;
-        rb.gravityScale = 0;
-        spriteRenderer.color = deadColor;
-        if (col != null) col.isTrigger = true;
-        // TODO - Sound effect here
-        audioSource.PlayOneShot(deathSound);
-        CancelInvoke();
-        OnReset();
-    }
+    
 }

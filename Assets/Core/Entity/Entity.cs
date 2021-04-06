@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using DG.Tweening;
 
 [RequireComponent(typeof(AudioSource))]
 public class Entity : MonoBehaviour
@@ -22,6 +19,8 @@ public class Entity : MonoBehaviour
     [SerializeField] protected bool useGravity;
     [SerializeField, Tooltip("This is only to show whether the entity is grounded. Can not modify.")] 
                      internal bool isGrounded;
+    [SerializeField, Tooltip("This is only to show whether the entity is hitting a wall on the sides. Can not modify.")]
+                     internal bool isHittingSide;
     [SerializeField] protected float normalGravity = 1, fallGravity = 2;
 
     [Header("Sounds")]
@@ -32,8 +31,14 @@ public class Entity : MonoBehaviour
     [SerializeField] protected GameObject groundCheckLeft;
     [SerializeField] protected GameObject groundCheckRight;
     [SerializeField] protected GameObject groundCheckMiddle;
-    [SerializeField] protected LayerMask groundMask, enemyMask;
+    [SerializeField] protected LayerMask groundMask;
     internal float groundCheckDistance = 0.1f;
+    [Header("Side Check")]
+    [SerializeField] protected GameObject sideCheckLeft;
+    [SerializeField] protected GameObject sideCheckRight;
+    [SerializeField] protected LayerMask wallMask;
+    internal float sideCheckDistance = 0.1f;
+
     const int internalSpeedMultiplier = 1000;
 
     [Header("GFX")]
@@ -42,6 +47,7 @@ public class Entity : MonoBehaviour
 
     [Header("Other")]
     [SerializeField] protected float deactivationTime;
+    [SerializeField] protected LayerMask enemyMask;
 
 
     internal Health health;
@@ -57,6 +63,7 @@ public class Entity : MonoBehaviour
     internal float currentMovementMultiplier;
     internal float jumpTimeElapsed;
     internal bool _isGrounded => CheckIsGrounded();
+    internal bool _isHittingSide => CheckIsHittingSide();
     internal bool canJump => _isGrounded || jumpTimeElapsed >= 0;
     internal bool isCollided, hasJumped, hasDoubleJumped;
     internal float totalSpeedMultiplier => movementSpeed * currentMovementMultiplier * internalSpeedMultiplier;
@@ -70,20 +77,45 @@ public class Entity : MonoBehaviour
         SetupEntity();
     }
 
+    internal virtual void Update()
+    {
+        SetAnimation();
+    }
+
+    internal virtual void SetAnimation()
+    {
+        
+    }
+
     internal virtual void FixedUpdate()
     {
         Move();
     }
 
     /// <summary>
+    /// Sets the movement vector based on the movementInput and gravity options.
+    /// </summary>
+    internal void SetMovementInput(Vector2 movementInput)
+    {
+        input = movementInput;
+        SetMovementVector(movementInput);
+    }
+    
+    /// <summary>
     /// Sets the movement vector based on the input and gravity options.
     /// </summary>
-    internal void SetMovementVector()
+    internal void SetMovementInput()
     {
-        movementVector = useGravity ? new Vector2(input.x, 0).normalized : input;
+        SetMovementVector(input);
+    }
+
+    private void SetMovementVector(Vector2 movementInput)
+    {
+        movementVector = useGravity ? new Vector2(movementInput.x, 0).normalized : movementInput;
         if (movementVector.x > 0) sign = 1;
         else if (movementVector.x < 0) sign = -1;
     }
+
 
     /// <summary>
     /// Reset velocity and input to zero.
@@ -100,8 +132,13 @@ public class Entity : MonoBehaviour
     internal virtual void Move()
     {
         isGrounded = _isGrounded;
+        isHittingSide = _isHittingSide;
         if (IsActive())
         {
+            if(isHittingSide)
+            {
+                movementVector.x = 0;
+            }
             jumpTimeElapsed = isGrounded ? jumpGracePeriod : jumpTimeElapsed - Time.deltaTime;
             if (input != Vector2.zero)
             {
@@ -191,22 +228,27 @@ public class Entity : MonoBehaviour
         if (col != null) col.isTrigger = false;
         SetEntityState(initialState);
     }
-    
+
+
     /// <summary>
     /// Kills the Entity
     /// </summary>
-    internal virtual void Kill()
+    internal virtual void Kill(bool deactivate = true)
     {
         // TODO - Kill the Entity
         currentEntityState = EntityState.Dead;
         rb.velocity = Vector2.zero;
         rb.gravityScale = 0;
         if (col != null) col.isTrigger = true;
-        // TODO - Sound effect here
+        // TODO - Animation?
         audioSource.PlayOneShot(deathSound);
-        CancelInvoke();
-        Invoke("Deactivate", deactivationTime);
+        if (deactivate)
+        {
+            CancelInvoke();
+            Invoke("Deactivate", deactivationTime);
+        }
     }
+
 
     /// <summary>
     /// Deactivates the game object.
@@ -235,7 +277,7 @@ public class Entity : MonoBehaviour
     /// <summary>
     /// Sets whether the entity can move and if it's invulnerable based on the current state.
     /// </summary>
-    internal virtual void EnforceEntityState()
+    private void EnforceEntityState()
     {
         switch (currentEntityState)
         {
@@ -268,7 +310,7 @@ public class Entity : MonoBehaviour
     /// <summary>
     /// Returns true if the currentEntityState is Active
     /// </summary>
-    internal bool IsActive()
+    public bool IsActive()
     {
         return currentEntityState == EntityState.Active;
     }
@@ -278,7 +320,7 @@ public class Entity : MonoBehaviour
     /// Returns true if the Entity is grounded. 
     /// The entity is grounded if at least one of its ground checks returns true.
     /// </summary>
-    internal bool CheckIsGrounded()
+    private bool CheckIsGrounded()
     {
         if (groundCheckLeft == null || groundCheckRight == null || groundCheckMiddle == null)
         {
@@ -292,6 +334,36 @@ public class Entity : MonoBehaviour
             return true;     
         return false;
     }
+
+    private bool CheckIsHittingSide()
+    {
+        if (sideCheckLeft == null || sideCheckRight== null)
+        {
+            Debug.LogError(transform.name + ": No Side Check Object!");
+            return false;
+        }
+        GameObject check;
+        switch (sign)
+        {
+            case 1:
+                check = sideCheckRight;
+                break;
+            case 2:
+                check = sideCheckLeft;
+                    break;
+            default:
+                check = sideCheckRight;
+                break;
+        }
+        RaycastHit2D hit = Physics2D.Raycast(check.transform.position, Vector2.right * sign, sideCheckDistance, wallMask);
+        // Add walljump check
+        if (hit) return true;
+        return false;
+
+    }
+
+
+
 
     internal virtual void OnCollisionEnter2D(Collision2D collision)
     {
