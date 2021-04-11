@@ -5,252 +5,256 @@ using UnityEngine;
 using Pathfinding;
 using System;
 
-[RequireComponent(typeof(Enemy))]
-public class EnemyAI : MonoBehaviour
+namespace Core.Entities
 {
-    [Header("Enemy AI")]
-    [SerializeField] internal float detectionRadius = 5f;
-    [SerializeField] internal float attackDistance = 0.75f, attackTime = 0.5f, timeBetweenAttacks = 1f;
-    [SerializeField] internal float pauseAfterAttackTime = 0.75f;
-    [SerializeField] internal float minJumpHeight = 0.25f, minJumpDistance = 0.75f;
-    [SerializeField] internal bool canAttackInAir = false;
-    [SerializeField] internal bool canAttackVertically = false;
-    [SerializeField] internal bool canDamagePlayer = false;
-    [SerializeField] public List<Transform> patrolPoints;
-    [SerializeField] public Sprite idleSprite, attackSprite, deadSprite, heldSprite;
-    [SerializeField] private float nextWaypointDistance = 0.25f;
-    [SerializeField] private AudioClip attackClip = null;
-
-    internal Enemy enemy;
-    internal Seeker seeker;
-    internal Path path;
-    internal Rigidbody2D rb;
-    internal Transform target, prevTarget;
-    internal PlayerController playerController;
-    internal Coroutine attackCoroutine;
-    internal int patrolIndex, pathIndex;
-    internal float timeToAttack = 0;
-    internal bool followingPlayer = false;
-    internal bool doneAttacking = true;
-    internal bool canAttack = true;
-    internal bool reachedEndOfPath;
-    internal bool waitForRepath;
-    [SerializeField] internal bool rotateDuringAttack = false;
-
-    private void Awake()
+    [RequireComponent(typeof(Enemy))]
+    public class EnemyAI : MonoBehaviour
     {
-        enemy = GetComponent<Enemy>();
-        rb = GetComponent<Rigidbody2D>();
-        seeker = GetComponent<Seeker>();
-        playerController = FindObjectOfType<PlayerController>();
-    }
+        [Header("Enemy AI")]
+        [SerializeField] internal float detectionRadius = 5f;
+        [SerializeField] internal float attackDistance = 0.75f, attackTime = 0.5f, timeBetweenAttacks = 1f;
+        [SerializeField] internal float pauseAfterAttackTime = 0.75f;
+        [SerializeField] internal float minJumpHeight = 0.25f, minJumpDistance = 0.75f;
+        [SerializeField] internal bool canAttackInAir = false;
+        [SerializeField] internal bool canAttackVertically = false;
+        [SerializeField] internal bool canDamagePlayer = false;
+        [SerializeField] public List<Transform> patrolPoints;
+        [SerializeField] public Sprite idleSprite, attackSprite, deadSprite, heldSprite;
+        [SerializeField] private float nextWaypointDistance = 0.25f;
+        [SerializeField] private AudioClip attackClip = null;
 
-    private void Start()
-    {
-        InvokeRepeating("CalculatePath", 0, 0.5f);
-        ResetAI();
-    }
+        internal Enemy enemy;
+        internal Seeker seeker;
+        internal Path path;
+        internal Rigidbody2D rb;
+        internal Transform target, prevTarget;
+        internal PlayerController playerController;
+        internal Coroutine attackCoroutine;
+        internal int patrolIndex, pathIndex;
+        internal float timeToAttack = 0;
+        internal bool followingPlayer = false;
+        internal bool doneAttacking = true;
+        internal bool canAttack = true;
+        internal bool reachedEndOfPath;
+        internal bool waitForRepath;
+        [SerializeField] internal bool rotateDuringAttack = false;
 
-    internal virtual void CalculatePath()
-    {
-        if (seeker.IsDone())
-            seeker.StartPath(transform.position, target.position, OnPathComplete);
-    }
-
-    internal void OnPathComplete(Path p)
-    {
-        if (!p.error)
+        private void Awake()
         {
-            path = p;
-            pathIndex = 0;
-            waitForRepath = false;
+            enemy = GetComponent<Enemy>();
+            rb = GetComponent<Rigidbody2D>();
+            seeker = GetComponent<Seeker>();
+            playerController = FindObjectOfType<PlayerController>();
         }
-    }
 
-    internal void ResetAI()
-    {
-        path = null;
-        target = patrolPoints[0];
-        prevTarget = target;
-        enemy.spriteRenderer.sprite = idleSprite;
-        timeToAttack = 0;
-        followingPlayer = false;
-        doneAttacking = true;
-        canAttack = true;
-        pathIndex = 0;
-        patrolIndex = 0;
-    }
-
-    internal void PauseAI()
-    {
-        if (attackCoroutine != null)
-            StopCoroutine(attackCoroutine);
-        canAttack = true;
-        doneAttacking = true;
-        canDamagePlayer = false;
-    }
-
-
-    #region AI
-    internal virtual void Update()
-    {
-        timeToAttack -= Time.deltaTime;
-        if (path == null || enemy.currentEntityState != EntityState.Active) return;
-        if (pathIndex >= path.vectorPath.Count)
+        private void Start()
         {
-            reachedEndOfPath = true;
-            return;
+            InvokeRepeating("CalculatePath", 0, 0.5f);
+            ResetAI();
         }
-        else reachedEndOfPath = false;
 
-
-        float distanceToPlayer = SelectTarget();
-        CheckPreviousTarget();
-
-        if (doneAttacking)
+        internal virtual void CalculatePath()
         {
-            if (followingPlayer)
+            if (seeker.IsDone())
+                seeker.StartPath(transform.position, target.position, OnPathComplete);
+        }
+
+        internal void OnPathComplete(Path p)
+        {
+            if (!p.error)
             {
-                enemy.spriteRenderer.sprite = attackSprite;
-                if (distanceToPlayer < attackDistance && timeToAttack <= 0)
-                    Attack();
+                path = p;
+                pathIndex = 0;
+                waitForRepath = false;
+            }
+        }
+
+        internal void ResetAI()
+        {
+            path = null;
+            target = patrolPoints[0];
+            prevTarget = target;
+            enemy.spriteRenderer.sprite = idleSprite;
+            timeToAttack = 0;
+            followingPlayer = false;
+            doneAttacking = true;
+            canAttack = true;
+            pathIndex = 0;
+            patrolIndex = 0;
+        }
+
+        internal void PauseAI()
+        {
+            if (attackCoroutine != null)
+                StopCoroutine(attackCoroutine);
+            canAttack = true;
+            doneAttacking = true;
+            canDamagePlayer = false;
+        }
+
+
+        #region AI
+        internal virtual void Update()
+        {
+            timeToAttack -= Time.deltaTime;
+            if (path == null || enemy.currentEntityState != EntityState.Active) return;
+            if (pathIndex >= path.vectorPath.Count)
+            {
+                reachedEndOfPath = true;
+                return;
+            }
+            else reachedEndOfPath = false;
+
+
+            float distanceToPlayer = SelectTarget();
+            CheckPreviousTarget();
+
+            if (doneAttacking)
+            {
+                if (followingPlayer)
+                {
+                    enemy.spriteRenderer.sprite = attackSprite;
+                    if (distanceToPlayer < attackDistance && timeToAttack <= 0)
+                        Attack();
+                }
+                else
+                {
+                    enemy.spriteRenderer.sprite = idleSprite;
+                    Patrol();
+                }
+                EnemyMovement();
+            }
+
+
+            float distance = Vector2.Distance(rb.position, path.vectorPath[pathIndex]);
+            if (distance < nextWaypointDistance && pathIndex < path.vectorPath.Count)
+                pathIndex++;
+        }
+
+        internal void SetHeldSprite()
+        {
+            enemy.spriteRenderer.sprite = heldSprite;
+        }
+        internal void SetDeadSprite()
+        {
+            enemy.spriteRenderer.sprite = deadSprite;
+        }
+
+        private float SelectTarget()
+        {
+            float distanceToPlayer = Vector2.Distance(playerController.transform.position, transform.position);
+            if (distanceToPlayer < detectionRadius)
+            {
+                followingPlayer = true;
+                target = playerController.transform;
             }
             else
             {
-                enemy.spriteRenderer.sprite = idleSprite;
-                Patrol();
+                followingPlayer = false;
+                target = patrolPoints[patrolIndex];
             }
-            EnemyMovement();
+
+            return distanceToPlayer;
         }
 
-
-        float distance = Vector2.Distance(rb.position, path.vectorPath[pathIndex]);
-        if (distance < nextWaypointDistance && pathIndex < path.vectorPath.Count)
-            pathIndex++;        
-    }
-
-    internal void SetHeldSprite()
-    {
-        enemy.spriteRenderer.sprite = heldSprite;
-    }
-    internal void SetDeadSprite()
-    {
-        enemy.spriteRenderer.sprite = deadSprite;
-    }
-
-    private float SelectTarget()
-    {
-        float distanceToPlayer = Vector2.Distance(playerController.transform.position, transform.position);
-        if (distanceToPlayer < detectionRadius)
+        private bool CheckPreviousTarget()
         {
-            followingPlayer = true;
-            target = playerController.transform;
+            if (prevTarget != target)
+            {
+                pathIndex = 0;
+                prevTarget = target;
+                return true;
+
+            }
+            else return false;
         }
-        else
+
+        internal virtual void EnemyMovement()
         {
-            followingPlayer = false;
-            target = patrolPoints[patrolIndex];
+            enemy.input = ((Vector2)path.vectorPath[pathIndex] - rb.position).normalized;
+            enemy.SetMovementInput();
+            Jump();
         }
 
-        return distanceToPlayer;
-    }
-
-    private bool CheckPreviousTarget()
-    {
-        if (prevTarget != target)
+        private void Patrol()
         {
-            pathIndex = 0;
-            prevTarget = target;
-            return true;
-
+            if (followingPlayer) return;
+            if (Vector2.Distance(rb.position, target.position) <= nextWaypointDistance)
+            {
+                patrolIndex++;
+                patrolIndex = patrolIndex % patrolPoints.Count;
+                target = patrolPoints[patrolIndex];
+            }
         }
-        else return false;
-    }
 
-    internal virtual void EnemyMovement()
-    {
-        enemy.input = ((Vector2)path.vectorPath[pathIndex] - rb.position).normalized;
-        enemy.SetMovementInput();
-        Jump();
-    }
-
-    private void Patrol()
-    {
-        if (followingPlayer) return;
-        if (Vector2.Distance(rb.position, target.position) <= nextWaypointDistance) 
+        private void Jump()
         {
-            patrolIndex++;
-            patrolIndex = patrolIndex % patrolPoints.Count;
-            target = patrolPoints[patrolIndex];
+            float yDiff = path.vectorPath[pathIndex].y - rb.position.y;
+            float xDiff = Mathf.Abs(path.vectorPath[pathIndex].x - rb.position.x);
+
+            if (target.position.y < rb.position.y) waitForRepath = true;
+
+            if (yDiff >= minJumpHeight && xDiff < minJumpDistance && !waitForRepath)
+            {
+                enemy.Jump();
+            }
         }
-    }
 
-    private void Jump()
-    {
-        float yDiff = path.vectorPath[pathIndex].y - rb.position.y;
-        float xDiff = Mathf.Abs(path.vectorPath[pathIndex].x - rb.position.x);
-
-        if (target.position.y < rb.position.y) waitForRepath = true;
-
-        if (yDiff >= minJumpHeight && xDiff < minJumpDistance && !waitForRepath)
+        public void Attack()
         {
-            enemy.Jump();
+            if (!canAttack) return;
+            if (!canAttackInAir && !enemy.isGrounded) return;
+            if (attackCoroutine != null)
+                StopCoroutine(attackCoroutine);
+            attackCoroutine = StartCoroutine(AttackCoroutine());
+        }
+
+        internal virtual IEnumerator AttackCoroutine()
+        {
+            doneAttacking = false;
+            canAttack = false;
+            canDamagePlayer = true;
+            rb.velocity = Vector2.zero;
+            enemy.ResetVelocityAndInput();
+            //float sign = Mathf.Sign(enemy.input.x);
+            Vector2 originalPosition = transform.position;
+            float x = playerController.transform.position.x;
+            float y = (canAttackVertically) ? playerController.transform.position.y : transform.position.y;
+            Vector2 attackOffset = new Vector2(x, y);
+            Tween myTween = rb.DOMove(attackOffset, attackTime);
+            enemy.audioSource.PlayOneShot(attackClip);
+            yield return myTween.WaitForCompletion();
+            canDamagePlayer = false;
+            myTween = rb.DOMove(originalPosition, attackTime / 2f);
+            yield return myTween.WaitForCompletion();
+            timeToAttack = timeBetweenAttacks;
+            rb.velocity = Vector2.zero;
+            yield return new WaitForSeconds(pauseAfterAttackTime);
+            canAttack = true;
+            doneAttacking = true;
+        }
+
+        internal virtual void Damage()
+        {
+            if (canDamagePlayer)
+                playerController.health.Damage(1, true);
+        }
+        #endregion
+
+        internal virtual void OnCollisionEnter2D(Collision2D collision)
+        {
+            if (collision.gameObject.GetComponent<PlayerController>())
+                Damage();
+        }
+        internal virtual void OnDrawGizmos()
+        {
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawWireSphere(transform.position, attackDistance);
+            Gizmos.color = Color.blue;
+            Gizmos.DrawWireSphere(transform.position, nextWaypointDistance);
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireSphere(transform.position, detectionRadius);
         }
     }
 
-    public void Attack()
-    {
-        if (!canAttack) return;
-        if (!canAttackInAir && !enemy.isGrounded) return;
-        if (attackCoroutine != null)
-            StopCoroutine(attackCoroutine);
-        attackCoroutine = StartCoroutine(AttackCoroutine());
-    }
-
-    internal virtual IEnumerator AttackCoroutine()
-    {
-        doneAttacking = false;
-        canAttack = false;
-        canDamagePlayer = true;
-        rb.velocity = Vector2.zero;
-        enemy.ResetVelocityAndInput();
-        //float sign = Mathf.Sign(enemy.input.x);
-        Vector2 originalPosition = transform.position;
-        float x = playerController.transform.position.x;
-        float y = (canAttackVertically) ? playerController.transform.position.y : transform.position.y;
-        Vector2 attackOffset = new Vector2(x, y);
-        Tween myTween = rb.DOMove(attackOffset, attackTime);
-        enemy.audioSource.PlayOneShot(attackClip);
-        yield return myTween.WaitForCompletion();
-        canDamagePlayer = false;
-        myTween = rb.DOMove(originalPosition, attackTime / 2f);
-        yield return myTween.WaitForCompletion();
-        timeToAttack = timeBetweenAttacks;
-        rb.velocity = Vector2.zero;
-        yield return new WaitForSeconds(pauseAfterAttackTime);
-        canAttack = true;
-        doneAttacking = true;
-    }
-
-    internal virtual void Damage()
-    {
-        if (canDamagePlayer)
-            playerController.health.Damage(1, true);
-    }
-    #endregion
-
-    internal virtual void OnCollisionEnter2D(Collision2D collision)
-    {
-        if (collision.gameObject.GetComponent<PlayerController>())
-            Damage();
-    }
-    internal virtual void OnDrawGizmos()
-    {
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, attackDistance);
-        Gizmos.color = Color.blue;
-        Gizmos.DrawWireSphere(transform.position, nextWaypointDistance);
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, detectionRadius);
-    }
 }
