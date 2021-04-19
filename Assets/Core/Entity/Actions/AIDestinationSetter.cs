@@ -7,11 +7,11 @@ using UnityEngine;
 
 namespace Core
 {
-
+    [RequireComponent(typeof(Seeker))]
     public class AIDestinationSetter : MonoBehaviour
     {
         [SerializeField] private Transform target;
-        [SerializeField] private Entity entity;
+        //[SerializeField] private Entity entity;
         [SerializeField] private float nextWaypointDistance = 0.25f;
         [SerializeField] private float pathRepeatTime = 0.5f;
 
@@ -25,7 +25,7 @@ namespace Core
         private void Awake()
         {
             seeker = GetComponent<Seeker>();
-            prevTarget = target;
+            SetTarget(target);
             DebugWarnings();
         }
 
@@ -36,7 +36,7 @@ namespace Core
 
         internal virtual void Update()
         {
-            if (path == null || waitForRepath || entity.currentEntityState != EntityState.Active) return;
+            if (path == null || waitForRepath /*|| entity.currentEntityState != EntityState.Active*/) return;
             if (pathIndex >= path.vectorPath.Count)
             {
                 reachedEndOfPath = true;
@@ -72,6 +72,7 @@ namespace Core
 
         internal virtual void CalculatePath()
         {
+            if (target == null) return;
             if (seeker.IsDone())
                 seeker.StartPath(transform.position, target.position, OnPathComplete);
         }
@@ -95,9 +96,9 @@ namespace Core
         private void DebugWarnings()
         {
             if (target == null)
-                Debug.LogError(transform.name + " doesn't have a target!");
-            if (entity == null)
-                Debug.LogError(transform.name + " doesn't have an entity!");
+                Debug.LogWarning(transform.name + " doesn't have a target!");
+            //if (entity == null)
+            //    Debug.LogError(transform.name + " doesn't have an entity!");
         }
     }
 }

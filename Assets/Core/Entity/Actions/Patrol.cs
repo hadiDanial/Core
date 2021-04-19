@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Core
+namespace Core.Entities
 {
     public class Patrol : Action
     {
@@ -10,8 +10,9 @@ namespace Core
 
         int patrolIndex;
       
-        internal override IEnumerator PerformAction()
+        protected override IEnumerator PerformAction()
         {
+            aiDestinationSetter.SetTarget(patrolPoints[patrolIndex]);
             WaitForSeconds wait = new WaitForSeconds(waitTime);
             while(true)
             {
@@ -19,6 +20,7 @@ namespace Core
                 {
                     patrolIndex++;
                     patrolIndex = patrolIndex % patrolPoints.Count;
+                    aiDestinationSetter.SetTarget(patrolPoints[patrolIndex]);
                     aiDestinationSetter.SetTarget(patrolPoints[patrolIndex]);
                 }
                 data.movementDirection = (patrolPoints[patrolIndex].position - transform.position).normalized;

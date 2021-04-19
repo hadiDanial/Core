@@ -2,24 +2,24 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Core
+namespace Core.Entities
 {
 
     public abstract class Action : MonoBehaviour
     {
-        [SerializeField] internal float waitTime = 0.2f;
+        [SerializeField] protected float waitTime = 0.2f;
 
-        internal AIDestinationSetter aiDestinationSetter;
-        internal Coroutine actionCoroutine;
-        internal ActionData data;
-        internal bool hasStarted = false;
-        internal virtual void Initialize(AIDestinationSetter aiDestinationSetter, ActionData data)
+        protected AIDestinationSetter aiDestinationSetter;
+        protected Coroutine actionCoroutine;
+        protected ActionData data;
+        protected bool hasStarted = false;
+        public virtual void Initialize(AIDestinationSetter aiDestinationSetter, ActionData data)
         {
             this.aiDestinationSetter = aiDestinationSetter;
             this.data = data;
         }
 
-        internal virtual void Execute()
+        public virtual void Execute()
         {
             if(hasStarted)
                 Stop();
@@ -27,23 +27,23 @@ namespace Core
             Resume();
         }
 
-        internal virtual void Stop()
+        public virtual void Stop()
         {
             if (actionCoroutine != null)
                 StopCoroutine(actionCoroutine);
         }
 
-        internal virtual void Resume()
+        public virtual void Resume()
         {
             actionCoroutine = StartCoroutine(PerformAction());
         }
 
-        internal virtual void Kill()
+        public virtual void Kill()
         {
             Stop();
             hasStarted = false;
         }
 
-        internal abstract IEnumerator PerformAction();
+        protected abstract IEnumerator PerformAction();
     }
 }
