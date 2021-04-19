@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Core.Entities
 {
-    [RequireComponent(typeof(AudioSource))]
+    [RequireComponent(typeof(Rigidbody2D), typeof(CollisionChecker), typeof(AudioSource))]
     public class Entity : MonoBehaviour
     {
         [SerializeField] internal EntityState currentEntityState = EntityState.Active;
