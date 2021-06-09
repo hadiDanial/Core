@@ -4,14 +4,15 @@ using UnityEngine;
 
 namespace Core.Entities
 {
-    [RequireComponent(typeof(Rigidbody2D), typeof(CollisionChecker), typeof(AudioSource))]
+    [RequireComponent(typeof(Rigidbody2D), typeof(CollisionChecker), typeof(Health))]
+    [RequireComponent(typeof(AudioSource))]
     public class Entity : MonoBehaviour
     {
         [SerializeField] internal EntityState currentEntityState = EntityState.Active;
-        [Header("Movement")]
-        [SerializeField] protected float movementSpeed;
-        [SerializeField, Range(0, 1f), Tooltip("How fast the Entity stops moving when there is no input")]
-        protected float stoppingPower = 0.125f;
+        //[Header("Movement")]
+        //[SerializeField] protected float movementSpeed;
+        //[SerializeField, Range(0, 1f), Tooltip("How fast the Entity stops moving when there is no input")]
+        //protected float stoppingPower = 0.125f;
         [Header("Jump")]
         [SerializeField] protected float jumpForce;
         [SerializeField, Range(0, 0.4f)]
@@ -19,7 +20,7 @@ namespace Core.Entities
         [SerializeField] protected bool jumpAllowed = true, canDoubleJump = false;
         [SerializeField, Range(0, 2)]
         protected float airControlPercent = 0.45f;
-        [SerializeField] protected bool useGravity;
+        [SerializeField] internal bool useGravity;
         [SerializeField, Tooltip("This is only to show whether the entity is grounded. Can not modify.")]
         internal bool isGrounded;
         [SerializeField, Tooltip("This is only to show whether the entity is hitting a wall on the sides. Can not modify.")]
@@ -69,20 +70,40 @@ namespace Core.Entities
         internal bool _isHittingSide => CheckIsHittingSide();
         internal bool canJump => _isGrounded || jumpTimeElapsed >= 0;
         internal bool isCollided, hasJumped, hasDoubleJumped;
-        internal float totalSpeedMultiplier => movementSpeed * currentMovementMultiplier * internalSpeedMultiplier;
+        //internal float totalSpeedMultiplier => movementSpeed * currentMovementMultiplier * internalSpeedMultiplier;
         internal int sign = 1;
 
         Vector3 initialPosition;
+        AIDestinationSetter setter;
+        ActionData data;
+        MovementAction movementAction;
 
         internal virtual void Awake()
         {
             rb = GetComponent<Rigidbody2D>();
+            health = GetComponent<Health>();
+            setter = gameObject.AddComponent<AIDestinationSetter>();
+            setter.SetTarget(transform);
+            data = new ActionData(this, setter);
             SetupEntity();
+            movementAction = GetComponent<MoveRigidbody>();
+            movementAction.Initialize(data);
+            movementAction.StartAction();
         }
 
         internal virtual void Update()
         {
             SetAnimation();
+            SetMovementInput();
+            movementAction.SetInput(movementVector);
+
+            UpdateActionData();
+        }
+
+        private void UpdateActionData()
+        {
+            data.isGrounded = isGrounded;
+            data.movementDirection = movementVector;
         }
 
         internal virtual void SetAnimation()
@@ -92,7 +113,7 @@ namespace Core.Entities
 
         internal virtual void FixedUpdate()
         {
-            Move();
+            //Move();
         }
 
         /// <summary>
@@ -132,32 +153,32 @@ namespace Core.Entities
         /// <summary>
         /// Movement logic.
         /// </summary>
-        internal virtual void Move()
-        {
-            isGrounded = _isGrounded;
-            isHittingSide = _isHittingSide;
-            if (IsActive())
-            {
-                if (isHittingSide)
-                {
-                    movementVector.x = 0;
-                }
-                jumpTimeElapsed = isGrounded ? jumpGracePeriod : jumpTimeElapsed - Time.deltaTime;
-                if (input != Vector2.zero)
-                {
-                    currentMovementMultiplier = isGrounded ? 1 : airControlPercent;
-                    rb.AddForce(movementVector * totalSpeedMultiplier * Time.deltaTime, ForceMode2D.Force);
-                }
-                else
-                {
-                    rb.AddForce(-rb.velocity.x * Vector2.right * totalSpeedMultiplier * stoppingPower * Time.deltaTime);
-                }
-                if (useGravity)
-                {
-                    rb.gravityScale = (rb.velocity.y < 0f) ? fallGravity : normalGravity;
-                }
-            }
-        }
+        //internal virtual void Move()
+        //{
+        //    isGrounded = _isGrounded;
+        //    isHittingSide = _isHittingSide;
+        //    if (IsActive())
+        //    {
+        //        if (isHittingSide)
+        //        {
+        //            movementVector.x = 0;
+        //        }
+        //        jumpTimeElapsed = isGrounded ? jumpGracePeriod : jumpTimeElapsed - Time.deltaTime;
+        //        if (input != Vector2.zero)
+        //        {
+        //            currentMovementMultiplier = isGrounded ? 1 : airControlPercent;
+        //            rb.AddForce(movementVector * totalSpeedMultiplier * Time.deltaTime, ForceMode2D.Force);
+        //        }
+        //        else
+        //        {
+        //            rb.AddForce(-rb.velocity.x * Vector2.right * totalSpeedMultiplier * stoppingPower * Time.deltaTime);
+        //        }
+        //        if (useGravity)
+        //        {
+        //            rb.gravityScale = (rb.velocity.y < 0f) ? fallGravity : normalGravity;
+        //        }
+        //    }
+        //}
 
         /// <summary>
         /// Jump
@@ -327,7 +348,7 @@ namespace Core.Entities
         {
             if (groundCheckLeft == null || groundCheckRight == null || groundCheckMiddle == null)
             {
-                Debug.LogError(transform.name + ": No Ground Check Object!");
+                Debug.Log(transform.name + ": No Ground Check Object!");
                 return false;
             }
             RaycastHit2D hitL = Physics2D.Raycast(groundCheckLeft.transform.position, Vector2.down, groundCheckDistance, groundMask);
@@ -342,7 +363,7 @@ namespace Core.Entities
         {
             if (sideCheckLeft == null || sideCheckRight == null)
             {
-                Debug.LogError(transform.name + ": No Side Check Object!");
+                Debug.Log(transform.name + ": No Side Check Object!");
                 return false;
             }
             GameObject check;
