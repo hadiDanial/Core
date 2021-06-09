@@ -1,12 +1,20 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using Core.Entities;
 using UnityEngine;
 
 namespace Core
 {
     public class ActionData
     {
-        public Vector3 movementDirection;
-        public bool isDone;
+        internal Entity entity;
+        internal AIDestinationSetter aiDestinationSetter;
+        internal Vector2 movementDirection;
+        internal bool isGrounded;
+        internal bool isDone;
+
+        public ActionData(Entity entity, AIDestinationSetter aiDestinationSetter)
+        {
+            this.entity = entity;
+            this.aiDestinationSetter = aiDestinationSetter;
+        }
     }
 }
