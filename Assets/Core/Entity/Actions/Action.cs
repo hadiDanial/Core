@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -7,43 +8,63 @@ namespace Core.Entities
 
     public abstract class Action : MonoBehaviour
     {
-        [SerializeField] protected float waitTime = 0.2f;
+        [SerializeField] protected float resetTime = 0.2f;
 
         protected AIDestinationSetter aiDestinationSetter;
         protected Coroutine actionCoroutine;
         protected ActionData data;
-        protected bool hasStarted = false;
-        public virtual void Initialize(AIDestinationSetter aiDestinationSetter, ActionData data)
+        protected Entity entity;
+        protected Rigidbody2D rb;
+        protected bool hasStarted = false, isPaused = true;
+
+        public virtual void Initialize(ActionData data)
         {
-            this.aiDestinationSetter = aiDestinationSetter;
             this.data = data;
+            aiDestinationSetter = data.aiDestinationSetter;
+            entity = data.entity;
+            rb = entity.rb;
+        }
+        public virtual void Update()
+        {
+            if (hasStarted && !isPaused)
+                UpdateAction();
         }
 
-        public virtual void Execute()
+        public abstract void UpdateAction();
+
+
+        public virtual void StartAction()
         {
-            if(hasStarted)
-                Stop();
             hasStarted = true;
-            Resume();
+            isPaused = false;
         }
 
-        public virtual void Stop()
+        public virtual void StopAction()
         {
-            if (actionCoroutine != null)
-                StopCoroutine(actionCoroutine);
+            isPaused = true;
+            hasStarted = false;
         }
 
         public virtual void Resume()
         {
-            actionCoroutine = StartCoroutine(PerformAction());
+            isPaused = false;
         }
 
-        public virtual void Kill()
+        public virtual void Pause()
         {
-            Stop();
-            hasStarted = false;
+            isPaused = true;
         }
 
-        protected abstract IEnumerator PerformAction();
+        public virtual void KillAction()
+        {
+            StopAction();
+            hasStarted = false;
+            Destroy(this);
+        }
+
+        protected virtual IEnumerator PerformAction()
+        {
+            yield return new WaitForSeconds(resetTime);
+        }
     }
 }
