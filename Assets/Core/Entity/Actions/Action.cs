@@ -16,6 +16,7 @@ namespace Core.Entities
         protected Entity entity;
         protected Rigidbody2D rb;
         protected bool hasStarted = false, isPaused = true;
+        protected bool alwaysUpdate = false;
 
         public virtual void Initialize(ActionData data)
         {
@@ -26,7 +27,7 @@ namespace Core.Entities
         }
         public virtual void Update()
         {
-            if (hasStarted && !isPaused)
+            if (alwaysUpdate || (hasStarted && !isPaused))
                 UpdateAction();
         }
 
