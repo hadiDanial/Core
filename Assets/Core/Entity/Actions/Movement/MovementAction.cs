@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -13,6 +14,7 @@ namespace Core.Entities
         [SerializeField, Range(0, 2)]
         protected float airControlPercent = 0.45f;
         [SerializeField] protected float normalGravity = 1, fallGravity = 2;
+        [SerializeField] protected bool canMove = true;
 
         protected float currentMovementMultiplier;
         protected float totalSpeedMultiplier => movementSpeed * currentMovementMultiplier * internalSpeedMultiplier;
@@ -31,6 +33,11 @@ namespace Core.Entities
         {
             this.movementVector = movementVector;
             SetMovementVector(movementVector);
+        }
+
+        internal void SetCanMove(bool v)
+        {
+            canMove = v;
         }
     }
 }

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Core.Entities
 {
@@ -9,6 +6,8 @@ namespace Core.Entities
     {
         public override void UpdateAction()
         {
+            if (!canMove) 
+                return;
             isGrounded = entity.isGrounded;
             SetMovementVector(movementVector);
             //isHittingSide = _isHittingSide;
