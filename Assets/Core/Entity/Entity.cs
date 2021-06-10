@@ -9,15 +9,6 @@ namespace Core.Entities
     public class Entity : MonoBehaviour
     {
         [SerializeField] internal EntityState currentEntityState = EntityState.Active;
-        //[Header("Movement")]
-        //[SerializeField] protected float movementSpeed;
-        //[SerializeField, Range(0, 1f), Tooltip("How fast the Entity stops moving when there is no input")]
-        //protected float stoppingPower = 0.125f;
-        [Header("Jump")]
-        [SerializeField] protected float jumpForce;
-        [SerializeField, Range(0, 0.4f)]
-        protected float jumpGracePeriod = 0.1f;
-        [SerializeField] protected bool jumpAllowed = true, canDoubleJump = false;
         [SerializeField, Range(0, 2)]
         protected float airControlPercent = 0.45f;
         [SerializeField] internal bool useGravity;
@@ -29,21 +20,6 @@ namespace Core.Entities
 
         [Header("Sounds")]
         [SerializeField] internal AudioClip hitSound = null, deathSound = null;
-
-
-        [Header("Ground Check")]
-        [SerializeField] protected GameObject groundCheckLeft;
-        [SerializeField] protected GameObject groundCheckRight;
-        [SerializeField] protected GameObject groundCheckMiddle;
-        [SerializeField] protected LayerMask groundMask;
-        internal float groundCheckDistance = 0.1f;
-        [Header("Side Check")]
-        [SerializeField] protected GameObject sideCheckLeft;
-        [SerializeField] protected GameObject sideCheckRight;
-        [SerializeField] protected LayerMask wallMask;
-        internal float sideCheckDistance = 0.1f;
-
-        const int internalSpeedMultiplier = 1000;
 
         [Header("GFX")]
         [SerializeField] protected GameObject GFX;
@@ -57,42 +33,50 @@ namespace Core.Entities
         internal Health health = null;
         internal AudioSource audioSource;
         internal Rigidbody2D rb;
+        private CollisionChecker collisionChecker;
         internal Collider2D col;
         internal Animator anim = null;
         internal Transform initialTransform;
         internal EntityState initialState;
         internal Vector2 input, aim = Vector2.zero, movementVector;
-        internal bool canMove; // Might remove later, useless now
 
         internal float currentMovementMultiplier;
-        internal float jumpTimeElapsed;
-        internal bool _isGrounded => CheckIsGrounded();
-        internal bool _isHittingSide => CheckIsHittingSide();
-        internal bool canJump => _isGrounded || jumpTimeElapsed >= 0;
-        internal bool isCollided, hasJumped, hasDoubleJumped;
-        //internal float totalSpeedMultiplier => movementSpeed * currentMovementMultiplier * internalSpeedMultiplier;
+        internal bool _isGrounded => collisionChecker.CheckIsGrounded();
+        internal bool _isHittingSide => collisionChecker.CheckIsHittingSide(sign);
+        internal bool _isHittingHead => collisionChecker.CheckIsHittingHead();
+        internal bool isCollided;
         internal int sign = 1;
 
         Vector3 initialPosition;
         AIDestinationSetter setter;
         ActionData data;
         MovementAction movementAction;
+        JumpAction jumpAction;
 
         internal virtual void Awake()
         {
             rb = GetComponent<Rigidbody2D>();
             health = GetComponent<Health>();
+            collisionChecker = GetComponent<CollisionChecker>();
             setter = gameObject.AddComponent<AIDestinationSetter>();
             setter.SetTarget(transform);
             data = new ActionData(this, setter);
             SetupEntity();
-            movementAction = GetComponent<MoveRigidbody>();
-            movementAction.Initialize(data);
-            movementAction.StartAction();
+            SetupActions();
+        }
+
+        private void SetupActions()
+        {
+            movementAction = GetComponent<MovementAction>();
+            movementAction?.Initialize(data);
+            movementAction?.StartAction();
+            jumpAction = GetComponent<JumpAction>();
+            jumpAction?.Initialize(data);
         }
 
         internal virtual void Update()
         {
+            isGrounded = _isGrounded;
             SetAnimation();
             SetMovementInput();
             movementAction.SetInput(movementVector);
@@ -109,11 +93,6 @@ namespace Core.Entities
         internal virtual void SetAnimation()
         {
 
-        }
-
-        internal virtual void FixedUpdate()
-        {
-            //Move();
         }
 
         /// <summary>
@@ -138,6 +117,7 @@ namespace Core.Entities
             movementVector = useGravity ? new Vector2(movementInput.x, 0).normalized : movementInput;
             if (movementVector.x > 0) sign = 1;
             else if (movementVector.x < 0) sign = -1;
+            movementAction.SetInput(movementVector);
         }
 
 
@@ -151,57 +131,11 @@ namespace Core.Entities
         }
 
         /// <summary>
-        /// Movement logic.
-        /// </summary>
-        //internal virtual void Move()
-        //{
-        //    isGrounded = _isGrounded;
-        //    isHittingSide = _isHittingSide;
-        //    if (IsActive())
-        //    {
-        //        if (isHittingSide)
-        //        {
-        //            movementVector.x = 0;
-        //        }
-        //        jumpTimeElapsed = isGrounded ? jumpGracePeriod : jumpTimeElapsed - Time.deltaTime;
-        //        if (input != Vector2.zero)
-        //        {
-        //            currentMovementMultiplier = isGrounded ? 1 : airControlPercent;
-        //            rb.AddForce(movementVector * totalSpeedMultiplier * Time.deltaTime, ForceMode2D.Force);
-        //        }
-        //        else
-        //        {
-        //            rb.AddForce(-rb.velocity.x * Vector2.right * totalSpeedMultiplier * stoppingPower * Time.deltaTime);
-        //        }
-        //        if (useGravity)
-        //        {
-        //            rb.gravityScale = (rb.velocity.y < 0f) ? fallGravity : normalGravity;
-        //        }
-        //    }
-        //}
-
-        /// <summary>
         /// Jump
         /// </summary>
         internal virtual void Jump()
         {
-            Vector2 doubleJumpBoost = Vector2.up;
-            if (!jumpAllowed || !IsActive())
-                return;
-            // Jump
-            if (canJump && !hasJumped)
-            {
-                hasJumped = true;
-                rb.AddForce(Vector2.up * jumpForce * 10, ForceMode2D.Impulse);
-            }
-            // Double Jump
-            else if (canDoubleJump && hasJumped && !hasDoubleJumped)
-            {
-                // Jump boost for if the player is falling
-                if (rb.velocity.y <= 0.1f) doubleJumpBoost = doubleJumpBoost + Vector2.up * Mathf.Clamp01(Mathf.Abs(rb.velocity.y));
-                hasDoubleJumped = true;
-                rb.AddForce(jumpForce * doubleJumpBoost * 8, ForceMode2D.Impulse);
-            }
+            jumpAction?.StartAction();
         }
 
         /// <summary>
@@ -307,25 +241,25 @@ namespace Core.Entities
             {
                 case EntityState.Active:
                     {
-                        canMove = true;
+                        movementAction?.SetCanMove(true);
                         health.SetVulnerable();
                     }
                     break;
                 case EntityState.Inactive:
                     {
-                        canMove = false;
+                        movementAction?.SetCanMove(false);
                         health.SetInvulnerable();
                     }
                     break;
                 case EntityState.Dead:
                     {
-                        canMove = false;
+                        movementAction?.SetCanMove(false);
                         health.SetInvulnerable();
                     }
                     break;
                 default:
                     {
-                        canMove = true;
+                        movementAction?.SetCanMove(true);
                     }
                     break;
             }
@@ -339,63 +273,12 @@ namespace Core.Entities
             return currentEntityState == EntityState.Active;
         }
 
-
-        /// <summary>
-        /// Returns true if the Entity is grounded. 
-        /// The entity is grounded if at least one of its ground checks returns true.
-        /// </summary>
-        private bool CheckIsGrounded()
-        {
-            if (groundCheckLeft == null || groundCheckRight == null || groundCheckMiddle == null)
-            {
-                Debug.Log(transform.name + ": No Ground Check Object!");
-                return false;
-            }
-            RaycastHit2D hitL = Physics2D.Raycast(groundCheckLeft.transform.position, Vector2.down, groundCheckDistance, groundMask);
-            RaycastHit2D hitR = Physics2D.Raycast(groundCheckRight.transform.position, Vector2.down, groundCheckDistance, groundMask);
-            RaycastHit2D hitM = Physics2D.Raycast(groundCheckMiddle.transform.position, Vector2.down, groundCheckDistance, groundMask);
-            if (hitR || hitL || hitM)
-                return true;
-            return false;
-        }
-
-        private bool CheckIsHittingSide()
-        {
-            if (sideCheckLeft == null || sideCheckRight == null)
-            {
-                Debug.Log(transform.name + ": No Side Check Object!");
-                return false;
-            }
-            GameObject check;
-            switch (sign)
-            {
-                case 1:
-                    check = sideCheckRight;
-                    break;
-                case 2:
-                    check = sideCheckLeft;
-                    break;
-                default:
-                    check = sideCheckRight;
-                    break;
-            }
-            RaycastHit2D hit = Physics2D.Raycast(check.transform.position, Vector2.right * sign, sideCheckDistance, wallMask);
-            // Add walljump check
-            if (hit) return true;
-            return false;
-
-        }
-
-
-
-
         internal virtual void OnCollisionEnter2D(Collision2D collision)
         {
             isCollided = true;
             if (_isGrounded)
             {
-                hasJumped = false;
-                hasDoubleJumped = false;
+                jumpAction?.StopAction();
             }
         }
         private void OnCollisionStay2D(Collision2D collision)
@@ -405,14 +288,6 @@ namespace Core.Entities
         private void OnCollisionExit2D(Collision2D collision)
         {
             isCollided = false;
-        }
-
-        private void OnDrawGizmos()
-        {
-            if (groundCheckLeft == null || groundCheckRight == null || groundCheckMiddle == null) return;
-            Gizmos.color = Color.red;
-            Gizmos.DrawLine(groundCheckRight.transform.position, groundCheckRight.transform.position + Vector3.down * groundCheckDistance);
-            Gizmos.DrawLine(groundCheckLeft.transform.position, groundCheckLeft.transform.position + Vector3.down * groundCheckDistance);
         }
     }
 
