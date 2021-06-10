@@ -18,6 +18,8 @@ namespace Core
         [SerializeField] protected GameObject sideCheckRight;
         [SerializeField] protected LayerMask wallMask;
         internal float sideCheckDistance = 0.1f;
+        [Header("Head Check")]
+        [SerializeField] protected GameObject headCheck;
 
 
         /// <summary>
@@ -35,6 +37,19 @@ namespace Core
             RaycastHit2D hitR = Physics2D.Raycast(groundCheckRight.transform.position, Vector2.down, groundCheckDistance, groundMask);
             RaycastHit2D hitM = Physics2D.Raycast(groundCheckMiddle.transform.position, Vector2.down, groundCheckDistance, groundMask);
             if (hitR || hitL || hitM)
+                return true;
+            return false;
+        }
+
+        public bool CheckIsHittingHead()
+        {
+            if (headCheck == null)
+            {
+                Debug.LogError(transform.name + ": No Head Check Object!");
+                return false;
+            }
+            RaycastHit2D hit = Physics2D.Raycast(headCheck.transform.position, Vector2.up, groundCheckDistance, groundMask);
+            if (hit)
                 return true;
             return false;
         }
@@ -71,6 +86,14 @@ namespace Core
             if (groundCheckLeft == null || groundCheckRight == null || groundCheckMiddle == null) return;
             Gizmos.color = Color.red;
             Gizmos.DrawLine(groundCheckRight.transform.position, groundCheckRight.transform.position + Vector3.down * groundCheckDistance);
+            Gizmos.DrawLine(groundCheckLeft.transform.position, groundCheckLeft.transform.position + Vector3.down * groundCheckDistance);
+            if (sideCheckLeft == null || sideCheckRight == null) return;
+            Gizmos.color = Color.green;
+            Gizmos.DrawLine(sideCheckLeft.transform.position, sideCheckLeft.transform.position + Vector3.left * sideCheckDistance);
+            Gizmos.DrawLine(sideCheckRight.transform.position, sideCheckRight.transform.position + Vector3.right * sideCheckDistance);
+            if (headCheck == null) return;
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawLine(headCheck.transform.position, headCheck.transform.position + Vector3.up * groundCheckDistance);
             Gizmos.DrawLine(groundCheckLeft.transform.position, groundCheckLeft.transform.position + Vector3.down * groundCheckDistance);
         }
     }
