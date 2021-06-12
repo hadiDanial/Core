@@ -10,14 +10,37 @@ namespace Core.Entities
     {
         public Checkpoint currentCheckpoint;
 
-
+        PlayerInput playerInput;
         Vector2 prevAim = Vector2.right;
 
         internal override void Awake()
         {
             base.Awake();
+            playerInput = new PlayerInput();
         }
+        private void OnEnable()
+        {
+            if (playerInput != null)
+            {
+                playerInput.Player.Enable();
+                playerInput.Player.Jump.performed += ctx => OnJump();
+                playerInput.Player.Jump.canceled += ctx => OnJumpCancel();
+                playerInput.Player.Horizontal.performed += ctx => OnHorizontal(ctx.ReadValue<float>());
+                playerInput.Player.Vertical.performed += ctx => OnVertical(ctx.ReadValue<float>());
+            }
+        }
+        private void OnDisable()
+        {
+            if (playerInput != null)
+            {
+                playerInput.Player.Disable();
+                playerInput.Player.Jump.performed -= ctx => OnJump();
+                playerInput.Player.Jump.canceled -= ctx => OnJumpCancel();
+                playerInput.Player.Horizontal.performed -= ctx => OnHorizontal(ctx.ReadValue<float>());
+                playerInput.Player.Vertical.performed -= ctx => OnVertical(ctx.ReadValue<float>());
+            }
 
+        }
         internal void ResetPlayer(Vector3 spawnPosition)
         {
             ResetEntity();
@@ -56,6 +79,13 @@ namespace Core.Entities
             input.x = value.Get<float>();
             SetMovementInput();
         }
+        public void OnHorizontal(float value)
+        {
+            if (!IsActive())
+                return;
+            input.x = value;
+            SetMovementInput();
+        }
 
         public void OnVertical(InputValue value)
         {
@@ -64,13 +94,23 @@ namespace Core.Entities
             input.y = value.Get<float>();
             SetMovementInput();
         }
+        public void OnVertical(float value)
+        {
+            if (!IsActive())
+                return;
+            input.y = value;
+            SetMovementInput();
+        }
 
         public void OnJump()
         {
             Jump();
         }
 
-
+        private void OnJumpCancel()
+        {
+            CancelJump();
+        }
 
         public void OnMouseAim(InputValue val)
         {
