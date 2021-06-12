@@ -1,5 +1,8 @@
 fileFormatVersion: 2
-guid: e441f6c3a13bfe945a8945edb46f2830
+guid: a897e8e15569e7742b3f133d00f9393b
+labels:
+- Action
+- JumpAction
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2

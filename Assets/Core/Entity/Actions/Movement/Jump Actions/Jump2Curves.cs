@@ -41,14 +41,25 @@ namespace Core.Entities
         }
         public override void StartAction()
         {
-            if (hasStarted)
+            if (!jumpAllowed || !entity.IsActive())
                 return;
-            base.StartAction();
-            time = 0;
-            goingUp = true;
-            isDone = false;
-            jumpPercent = 0;
-            fallPercent = 0;
+            else if (canJump)
+            {
+                base.StartAction();
+                time = 0;
+                goingUp = true;
+                isDone = false;
+                jumpPercent = 0;
+                fallPercent = 0;
+                jumpTimeElapsed = -1;
+                hasJumped = true;
+            }
+        }
+
+        public override void StopAction()
+        {
+            base.StopAction();
+            rb.velocity = new Vector2(rb.velocity.x, 0);
         }
     }
 }
