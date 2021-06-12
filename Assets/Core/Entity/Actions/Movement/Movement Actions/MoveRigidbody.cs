@@ -8,20 +8,22 @@ namespace Core.Entities
         {
             if (!canMove) 
                 return;
-            isGrounded = entity.isGrounded;
+            base.UpdateAction();
             SetMovementVector(movementVector);
             //isHittingSide = _isHittingSide;
             if (entity.IsActive())
             {
-                //if (isHittingSide)
-                //{
-                //    movementVector.x = 0;
-                //}
-                //jumpTimeElapsed = isGrounded ? jumpGracePeriod : jumpTimeElapsed - Time.deltaTime;
                 if (movementVector != Vector2.zero)
                 {
-                    currentMovementMultiplier = isGrounded ? 1 : airControlPercent;
-                    rb.AddForce(movementVector * totalSpeedMultiplier * Time.deltaTime, ForceMode2D.Force);
+                    if (isHittingSide)
+                    {
+                        movementVector.x = 0;
+                    }
+                    else
+                    {
+                        currentMovementMultiplier = isGrounded ? 1 : airControlPercent;
+                        rb.AddForce(movementVector * totalSpeedMultiplier * Time.deltaTime, ForceMode2D.Force);
+                    }
                 }
                 else
                 {
@@ -29,7 +31,10 @@ namespace Core.Entities
                 }
                 if (entity.useGravity)
                 {
-                    rb.gravityScale = (rb.velocity.y < 0f) ? fallGravity : normalGravity;
+                    if (isGrounded)
+                        rb.gravityScale = 0;
+                    else
+                        rb.gravityScale = (rb.velocity.y < 0f) ? fallGravity : normalGravity;
                 }
             }
         }

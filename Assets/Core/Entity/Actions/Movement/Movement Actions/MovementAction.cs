@@ -19,9 +19,16 @@ namespace Core.Entities
         protected float currentMovementMultiplier;
         protected float totalSpeedMultiplier => movementSpeed * currentMovementMultiplier * internalSpeedMultiplier;
         protected const int internalSpeedMultiplier = 1000;
-        protected bool isGrounded;
+        protected bool isGrounded, isHittingHead, isHittingSide;
         protected Vector2 movementVector;
-
+        public override void UpdateAction()
+        {
+            if (!canMove || !CanPerformAction())
+                return;
+            isGrounded = entity.isGrounded;
+            isHittingHead = entity.isHittingHead;
+            isHittingSide = entity.isHittingSide;
+        }
         protected virtual void SetMovementVector(Vector2 movementInput)
         {
             movementVector = entity.useGravity ? new Vector2(movementInput.x, 0).normalized : movementInput;

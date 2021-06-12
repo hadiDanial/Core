@@ -1,5 +1,8 @@
 fileFormatVersion: 2
-guid: 04f4872ee26f05a4c981d9525913d171
+guid: be1e0f54d3738224b8c68714127242f1
+labels:
+- Action
+- MovementAction
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
