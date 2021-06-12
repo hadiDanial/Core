@@ -16,13 +16,16 @@ namespace Core.Entities
         internal bool isGrounded;
         [SerializeField, Tooltip("This is only to show whether the entity is hitting a wall on the sides. Can not modify.")]
         internal bool isHittingSide;
+        [SerializeField, Tooltip("This is only to show whether the entity is hitting something above them. Can not modify.")]
+        internal bool isHittingHead;
         [SerializeField] protected float normalGravity = 1, fallGravity = 2;
 
         [Header("Sounds")]
-        [SerializeField] internal AudioClip hitSound = null, deathSound = null;
+        [SerializeField] internal AudioClip hitSound = null;
+        [SerializeField] internal AudioClip deathSound = null;
 
         [Header("GFX")]
-        [SerializeField] protected GameObject GFX;
+        [SerializeField] protected GameObject gfxObject;
         [SerializeField] internal SpriteRenderer spriteRenderer;
 
         [Header("Other")]
@@ -41,28 +44,31 @@ namespace Core.Entities
         internal Vector2 input, aim = Vector2.zero, movementVector;
 
         internal float currentMovementMultiplier;
-        internal bool _isGrounded => collisionChecker.CheckIsGrounded();
-        internal bool _isHittingSide => collisionChecker.CheckIsHittingSide(sign);
-        internal bool _isHittingHead => collisionChecker.CheckIsHittingHead();
+        private bool _isGrounded => collisionChecker.CheckIsGrounded();
+        private bool _isHittingSide => collisionChecker.CheckIsHittingSide(sign);
+        private bool _isHittingHead => collisionChecker.CheckIsHittingHead();
         internal bool isCollided;
         internal int sign = 1;
 
         Vector3 initialPosition;
-        AIDestinationSetter setter;
         ActionData data;
-        MovementAction movementAction;
-        JumpAction jumpAction;
+        public MovementAction movementAction;
+        public JumpAction jumpAction;
+        private Action[] actions;
 
         internal virtual void Awake()
         {
             rb = GetComponent<Rigidbody2D>();
             health = GetComponent<Health>();
             collisionChecker = GetComponent<CollisionChecker>();
-            setter = gameObject.AddComponent<AIDestinationSetter>();
-            setter.SetTarget(transform);
-            data = new ActionData(this, setter);
+            SetupActionData();
             SetupEntity();
             SetupActions();
+        }
+
+        protected virtual void SetupActionData()
+        {
+            data = new ActionData(this);
         }
 
         private void SetupActions()
@@ -72,16 +78,26 @@ namespace Core.Entities
             movementAction?.StartAction();
             jumpAction = GetComponent<JumpAction>();
             jumpAction?.Initialize(data);
+            actions = GetComponents<Action>();
+            foreach (Action action in actions)
+            {
+                if (action != jumpAction && action != movementAction)
+                    action?.Initialize(data);
+            }
         }
 
         internal virtual void Update()
         {
+            if (currentEntityState != EntityState.Active)
+                return;
             isGrounded = _isGrounded;
+            isHittingSide = _isHittingSide;
+            isHittingHead = _isHittingHead;
             SetAnimation();
             SetMovementInput();
             movementAction.SetInput(movementVector);
 
-            UpdateActionData();
+            //UpdateActionData();
         }
 
         private void UpdateActionData()
@@ -138,20 +154,25 @@ namespace Core.Entities
             jumpAction?.StartAction();
         }
 
+        internal virtual void CancelJump()
+        {
+            jumpAction?.CancelJump();
+        }
+
         /// <summary>
         /// Rotates the graphics object to face the direction on the y-axis.
         /// </summary>
         /// <param name="dir">The direction to face.</param>
         internal void RotateGFX(Vector2 dir)
         {
-            if (GFX == null) return;
+            if (gfxObject == null) return;
             if (dir.x < 0)
             {
-                GFX.transform.rotation = Quaternion.Euler(0, 180, 0);
+                gfxObject.transform.rotation = Quaternion.Euler(0, 180, 0);
             }
             else if (dir.x > 0)
             {
-                GFX.transform.rotation = Quaternion.Euler(0, 0, 0);
+                gfxObject.transform.rotation = Quaternion.Euler(0, 0, 0);
             }
         }
 
@@ -200,6 +221,11 @@ namespace Core.Entities
             if (col != null) col.isTrigger = true;
             // TODO - Animation?
             audioSource.PlayOneShot(deathSound);
+            foreach (Action action in actions)
+            {
+                action?.StopAction();
+                action?.SetActive(false);
+            }
             if (deactivate)
             {
                 CancelInvoke();
