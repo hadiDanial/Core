@@ -67,7 +67,6 @@ namespace Core.Entities
             foreach (Action action in actions)
             {
                 action?.Initialize(this, null);
-                action?.StartAction();
             }
             movementAction = GetComponent<MovementAction>();
             movementAction?.StartAction();
