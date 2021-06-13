@@ -4,9 +4,10 @@
  May use DOTWeen Pro.
 
 ## TODO
-- Implement Dash mechanic.
+- Implement Dash mechanic, with several variants.
 - Implement Attacks.
 - Add animation support.
 - Add an AudioManager.
 - Rework the Enemy and EnemyAI classes.
 - Implement AI behaviors.
+- Add scene management options
