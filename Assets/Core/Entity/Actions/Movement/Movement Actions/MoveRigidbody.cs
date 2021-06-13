@@ -9,7 +9,7 @@ namespace Core.Entities
             if (!canMove) 
                 return;
             base.UpdateAction();
-            SetMovementVector(movementVector);
+            SetMovementVector();
             //isHittingSide = _isHittingSide;
             if (entity.IsActive())
             {
@@ -29,7 +29,7 @@ namespace Core.Entities
                 {
                     rb.AddForce(-rb.velocity.x * Vector2.right * totalSpeedMultiplier * stoppingPower * Time.deltaTime);
                 }
-                if (entity.useGravity)
+                if (useGravity)
                 {
                     if (isGrounded)
                         rb.gravityScale = 0;
