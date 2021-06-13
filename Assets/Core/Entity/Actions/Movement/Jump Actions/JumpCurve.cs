@@ -22,9 +22,8 @@ namespace Core.Entities
                 if (jumpPercent >= 1)
                 {
                     time = 0;
-                }            
-                if (jumpPercent >= 1)
                     isDone = true;
+                }            
                 verticalVelocity = jumpCurve.Evaluate(jumpPercent) * jumpSpeed;
                 if (isDone)
                     verticalVelocity = jumpCurve.Evaluate(1) * jumpSpeed;
@@ -50,6 +49,11 @@ namespace Core.Entities
         {
             base.StopAction();
             rb.velocity = new Vector2(rb.velocity.x, 0);
+        }
+
+        protected override bool IsGoingUp()
+        {
+            return !isDone;
         }
     }
 }

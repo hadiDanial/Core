@@ -22,7 +22,7 @@ namespace Core.Entities
         public override void UpdateAction()
         {
             base.UpdateAction();
-            if (hasStarted)
+            if (hasStarted && goingUp)
             {
                 currentHeight = transform.position.y;
                 if (currentHeight <= finalMinPos || (goingUp && currentHeight < finalMaxPos))
@@ -41,9 +41,9 @@ namespace Core.Entities
         {
             if (!jumpAllowed || !entity.IsActive())
                 return;
-            base.StartAction();
             if (canJump && !goingUp)
             {
+            base.StartAction();
                 hasJumped = true;
                 goingUp = isBufferJump ? false : true;
                 initialHeight = transform.position.y;
@@ -63,6 +63,11 @@ namespace Core.Entities
         {
             goingUp = false;
             isBufferJump = isWaitingOnBuffer ? true : false;
+        }
+
+        protected override bool IsGoingUp()
+        {
+            return goingUp;
         }
     }
 }

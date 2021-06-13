@@ -40,6 +40,10 @@ namespace Core.Entities
                 hasDoubleJumped = true;
             }
         }
-       
+
+        protected override bool IsGoingUp()
+        {
+            return rb.velocity.y >= 0;
+        }
     }
 }

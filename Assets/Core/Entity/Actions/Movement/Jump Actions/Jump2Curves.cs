@@ -61,5 +61,10 @@ namespace Core.Entities
             base.StopAction();
             rb.velocity = new Vector2(rb.velocity.x, 0);
         }
+
+        protected override bool IsGoingUp()
+        {
+            return goingUp;
+        }
     }
 }
