@@ -199,8 +199,9 @@ GameObject:
   - component: {fileID: 4284445464227755303}
   - component: {fileID: 4284445464227755299}
   - component: {fileID: 4284445464227755300}
-  - component: {fileID: 4284445464227755304}
+  - component: {fileID: 5558842520135630801}
   - component: {fileID: 4284445464227755327}
+  - component: {fileID: 4284445464227755304}
   - component: {fileID: 4284445464227755324}
   - component: {fileID: 4284445464227755302}
   - component: {fileID: 4284445464227755296}
@@ -208,6 +209,7 @@ GameObject:
   - component: {fileID: 4284445464227755298}
   - component: {fileID: 4284445464227755306}
   - component: {fileID: 4284445464227755307}
+  - component: {fileID: 589467632}
   m_Layer: 8
   m_Name: Player
   m_TagString: Untagged
@@ -301,6 +303,81 @@ MonoBehaviour:
   normalGravity: 2
   fallGravity: 5
   canMove: 1
+--- !u!114 &5558842520135630801
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4284445464227755305}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3fbb7be1ae0d145419e2830c544bd636, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  resetTime: 0.2
+  jumpGracePeriod: 0.1
+  jumpBufferPeriod: 0.2
+  jumpAllowed: 1
+  stopOnHittingWall: 1
+  minJumpHeight: 1.6
+  maxJumpHeight: 4.1
+  jumpSpeed: 16
+  verticalSpeed: 0
+  jumpCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0.5
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.09713745
+      value: 1.0014229
+      inSlope: 0.055384874
+      outSlope: 0.055384874
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.9968262
+      value: 0.4701538
+      inSlope: -0.2112139
+      outSlope: -0.2112139
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.10746223
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+--- !u!114 &4284445464227755327
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4284445464227755305}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5d4db0975e13d04fb53b7c057dedd8d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  resetTime: 0.2
+  jumpGracePeriod: 0.1
+  jumpBufferPeriod: 0.2
+  jumpAllowed: 1
+  stopOnHittingWall: 1
+  minJumpHeight: 1.6
+  maxJumpHeight: 4.1
+  jumpSpeed: 9.5
+  verticalSpeed: 0
 --- !u!114 &4284445464227755304
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -321,27 +398,6 @@ MonoBehaviour:
   jumpForce: 2.1
   canDoubleJump: 0
   absoluteDoubleJump: 1
---- !u!114 &4284445464227755327
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4284445464227755305}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d5d4db0975e13d04fb53b7c057dedd8d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  resetTime: 0.2
-  jumpGracePeriod: 0.1
-  jumpBufferPeriod: 0.075
-  jumpAllowed: 1
-  stopOnHittingWall: 1
-  minJumpHeight: 1.6
-  maxJumpHeight: 4.1
-  jumpSpeed: 9.5
-  verticalSpeed: 0
 --- !u!114 &4284445464227755324
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -620,6 +676,33 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &589467632
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4284445464227755305}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3fbb7be1ae0d145419e2830c544bd636, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  resetTime: 0.2
+  jumpGracePeriod: 0.1
+  jumpBufferPeriod: 0.08
+  jumpAllowed: 1
+  stopOnHittingWall: 1
+  minJumpHeight: 1.6
+  maxJumpHeight: 4.1
+  jumpSpeed: 9.5
+  verticalSpeed: 0
+  jumpCurve:
+    serializedVersion: 2
+    m_Curve: []
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &4284445464240760291
 GameObject:
   m_ObjectHideFlags: 0
