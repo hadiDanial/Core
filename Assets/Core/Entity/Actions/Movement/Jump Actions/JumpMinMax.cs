@@ -14,9 +14,9 @@ namespace Core.Entities
         private bool goingUp = true;
         private bool isBufferJump = false;
 
-        public override void Initialize(ActionData data)
+        public override void Initialize(Entity entity, AIDestinationSetter aiDestinationSetter)
         {
-            base.Initialize(data);
+            base.Initialize(entity, aiDestinationSetter);
             canBeCancelled = true;
         }
         public override void UpdateAction()

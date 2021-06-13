@@ -9,9 +9,6 @@ namespace Core.Entities
     public class Entity : MonoBehaviour
     {
         [SerializeField] internal EntityState currentEntityState = EntityState.Active;
-        [SerializeField, Range(0, 2)]
-        protected float airControlPercent = 0.45f;
-        [SerializeField] internal bool useGravity;
         [SerializeField, Tooltip("This is only to show whether the entity is grounded. Can not modify.")]
         internal bool isGrounded;
         [SerializeField, Tooltip("This is only to show whether the entity is hitting a wall on the sides. Can not modify.")]
@@ -33,14 +30,14 @@ namespace Core.Entities
         [SerializeField] protected LayerMask enemyMask;
 
 
+        internal EntityState initialState;
         internal Health health = null;
+        internal Animator anim = null;
         internal AudioSource audioSource;
         internal Rigidbody2D rb;
-        private CollisionChecker collisionChecker;
+        internal CollisionChecker collisionChecker;
         internal Collider2D col;
-        internal Animator anim = null;
         internal Transform initialTransform;
-        internal EntityState initialState;
         internal Vector2 input, aim = Vector2.zero, movementVector;
 
         internal float currentMovementMultiplier;
@@ -51,7 +48,6 @@ namespace Core.Entities
         internal int sign = 1;
 
         Vector3 initialPosition;
-        ActionData data;
         public MovementAction movementAction;
         public JumpAction jumpAction;
         private Action[] actions;
@@ -61,29 +57,21 @@ namespace Core.Entities
             rb = GetComponent<Rigidbody2D>();
             health = GetComponent<Health>();
             collisionChecker = GetComponent<CollisionChecker>();
-            SetupActionData();
             SetupEntity();
             SetupActions();
         }
 
-        protected virtual void SetupActionData()
+        internal virtual void SetupActions()
         {
-            data = new ActionData(this);
-        }
-
-        private void SetupActions()
-        {
-            movementAction = GetComponent<MovementAction>();
-            movementAction?.Initialize(data);
-            movementAction?.StartAction();
-            jumpAction = GetComponent<JumpAction>();
-            jumpAction?.Initialize(data);
             actions = GetComponents<Action>();
             foreach (Action action in actions)
             {
-                if (action != jumpAction && action != movementAction)
-                    action?.Initialize(data);
+                action?.Initialize(this, null);
+                action?.StartAction();
             }
+            movementAction = GetComponent<MovementAction>();
+            movementAction?.StartAction();
+            jumpAction = GetComponent<JumpAction>();
         }
 
         internal virtual void Update()
@@ -94,48 +82,13 @@ namespace Core.Entities
             isHittingSide = _isHittingSide;
             isHittingHead = _isHittingHead;
             SetAnimation();
-            SetMovementInput();
-            movementAction.SetInput(movementVector);
-
-            //UpdateActionData();
-        }
-
-        private void UpdateActionData()
-        {
-            data.isGrounded = isGrounded;
-            data.movementDirection = movementVector;
+            movementAction.SetInput(input);
         }
 
         internal virtual void SetAnimation()
         {
 
         }
-
-        /// <summary>
-        /// Sets the movement vector based on the movementInput and gravity options.
-        /// </summary>
-        internal void SetMovementInput(Vector2 movementInput)
-        {
-            input = movementInput;
-            SetMovementVector(movementInput);
-        }
-
-        /// <summary>
-        /// Sets the movement vector based on the input and gravity options.
-        /// </summary>
-        internal void SetMovementInput()
-        {
-            SetMovementVector(input);
-        }
-
-        private void SetMovementVector(Vector2 movementInput)
-        {
-            movementVector = useGravity ? new Vector2(movementInput.x, 0).normalized : movementInput;
-            if (movementVector.x > 0) sign = 1;
-            else if (movementVector.x < 0) sign = -1;
-            movementAction.SetInput(movementVector);
-        }
-
 
         /// <summary>
         /// Reset velocity and input to zero.

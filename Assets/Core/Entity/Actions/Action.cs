@@ -12,19 +12,16 @@ namespace Core.Entities
 
         protected AIDestinationSetter aiDestinationSetter;
         protected Coroutine actionCoroutine;
-        protected ActionData data;
         protected Entity entity;
         protected Rigidbody2D rb;
         protected bool hasStarted = false, isPaused = true;
         protected bool alwaysUpdate = false, activeAction = true;
         private float timer = 0;
 
-        public virtual void Initialize(ActionData data)
+        public virtual void Initialize(Entity entity, AIDestinationSetter aiDestinationSetter)
         {
-            this.data = data;
-            if(data.aiDestinationSetter != null)
-                aiDestinationSetter = data.aiDestinationSetter;
-            entity = data.entity;
+            this.aiDestinationSetter = aiDestinationSetter;
+            this.entity = entity;
             rb = entity.rb;
             entity.health.OnKill += OnEntityDeath;
         }

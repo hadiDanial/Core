@@ -23,9 +23,9 @@ namespace Core.Entities
         internal bool hasJumped, hasDoubleJumped;
         internal bool isWaitingOnBuffer = false;
 
-        public override void Initialize(ActionData data)
+        public override void Initialize(Entity entity, AIDestinationSetter aiDestinationSetter)
         {
-            base.Initialize(data);
+            base.Initialize(entity, aiDestinationSetter);
             alwaysUpdate = true;
             jumpBufferTimer = jumpBufferPeriod;
         }
