@@ -77,14 +77,12 @@ namespace Core.Entities
             if (!IsActive())
                 return;
             input.x = value.Get<float>();
-            SetMovementInput();
         }
         public void OnHorizontal(float value)
         {
             if (!IsActive())
                 return;
             input.x = value;
-            SetMovementInput();
         }
 
         public void OnVertical(InputValue value)
@@ -92,14 +90,12 @@ namespace Core.Entities
             if (!IsActive())
                 return;
             input.y = value.Get<float>();
-            SetMovementInput();
         }
         public void OnVertical(float value)
         {
             if (!IsActive())
                 return;
             input.y = value;
-            SetMovementInput();
         }
 
         public void OnJump()
