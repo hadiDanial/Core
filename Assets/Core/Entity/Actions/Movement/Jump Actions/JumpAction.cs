@@ -34,10 +34,21 @@ namespace Core.Entities
         {
             if (!CanPerformAction())
                 return;
+            if (entity.isHittingHead)
+                StopAction();
+            if (entity.isGrounded && hasStarted)
+                StopAction();
+            if (entity.isHittingSide)
+            {
+                if (!IsGoingUp() && hasStarted)
+                    StopAction();
+            }
             jumpTimeElapsed = entity.isGrounded ? jumpGracePeriod : jumpTimeElapsed - Time.deltaTime;
             jumpBufferTimer += Time.deltaTime;
             HandleJumpBuffer();
         }
+
+        protected abstract bool IsGoingUp();
 
         internal virtual void HandleJumpBuffer()
         {
@@ -67,15 +78,6 @@ namespace Core.Entities
             base.StopAction();
             hasJumped = false;
             hasDoubleJumped = false;
-        }
-
-        private void OnCollisionEnter2D(Collision2D collision)
-        {
-            if (entity != null)
-            {
-                if (entity.isHittingHead || (stopOnHittingWall && entity.isHittingSide))
-                    StopAction();
-            }
         }
 
         internal virtual void CancelJump()
