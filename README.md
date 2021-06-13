@@ -1,9 +1,12 @@
 # Core
- A collection of core character controllers.
-
+ A collection of core mechanics, game systems, and character controllers for a 2D sidescroller/platformer for Unity.
+ To be used as a basis for future games.
+ May use DOTWeen Pro.
 
 ## TODO
-- Test out the new functionality (side checks etc...)
-- Make a test scene.
-- Make sure there are no bugs due to the restructuring of the code.
-- Add a namespace
+- Implement Dash mechanic.
+- Implement Attacks.
+- Add animation support.
+- Add an AudioManager.
+- Rework the Enemy and EnemyAI classes.
+- Implement AI behaviors.
