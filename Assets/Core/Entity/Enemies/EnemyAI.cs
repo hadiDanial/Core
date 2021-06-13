@@ -172,7 +172,6 @@ namespace Core.Entities
         internal virtual void EnemyMovement()
         {
             enemy.input = ((Vector2)path.vectorPath[pathIndex] - rb.position).normalized;
-            enemy.SetMovementInput();
             Jump();
         }
 

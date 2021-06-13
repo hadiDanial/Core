@@ -60,7 +60,6 @@ namespace Core.Entities
             if (doneAttacking)
             {
                 enemy.input = ((Vector2)path.vectorPath[pathIndex] - rb.position).normalized;
-                enemy.SetMovementInput();
             }
         }
         internal override void OnDrawGizmos()
