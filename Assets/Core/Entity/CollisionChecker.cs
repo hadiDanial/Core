@@ -10,14 +10,15 @@ namespace Core
         [Header("Ground Check")]
         [SerializeField] protected List<GameObject> groundChecks = new List<GameObject>();
         [SerializeField] protected LayerMask groundMask;
-        internal float groundCheckDistance = 0.1f;
+        [SerializeField] internal float groundCheckDistance = 0.1f;
         [Header("Side Check")]
         [SerializeField] protected List<GameObject> sideChecksLeft = new List<GameObject>();
         [SerializeField] protected List<GameObject> sideChecksRight = new List<GameObject>();
         [SerializeField] protected LayerMask wallMask;
-        internal float sideCheckDistance = 0.1f;
+        [SerializeField] internal float sideCheckDistance = 0.075f;
         [Header("Head Check")]
         [SerializeField] protected List<GameObject> headChecks = new List<GameObject>();
+        [SerializeField] internal float headCheckDistance = 0.075f;
 
         List<RaycastHit2D> groundHits = new List<RaycastHit2D>();
         List<RaycastHit2D> leftHits = new List<RaycastHit2D>();
@@ -63,7 +64,7 @@ namespace Core
                 }
                 else
                 {
-                    RaycastHit2D hit = Physics2D.Raycast(headCheck.transform.position, Vector2.up, groundCheckDistance, groundMask);
+                    RaycastHit2D hit = Physics2D.Raycast(headCheck.transform.position, Vector2.up, headCheckDistance, groundMask);
                     if (hit)
                         headHits.Add(hit);
                     hasHit = hasHit || hit;
@@ -134,7 +135,7 @@ namespace Core
             foreach (GameObject headCheck in headChecks)
             {
                 if(headCheck != null)
-                    Gizmos.DrawLine(headCheck.transform.position, headCheck.transform.position + Vector3.up * groundCheckDistance);
+                    Gizmos.DrawLine(headCheck.transform.position, headCheck.transform.position + Vector3.up * headCheckDistance);
             }
         }
     }
