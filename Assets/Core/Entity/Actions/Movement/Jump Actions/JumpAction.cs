@@ -57,6 +57,10 @@ namespace Core.Entities
                 jumpBufferTimer = jumpBufferPeriod;
                 StartAction();
             }
+            else if(jumpBufferTimer > jumpBufferPeriod)
+            {
+                isWaitingOnBuffer = false;
+            }
         }
 
         public override void StartAction()
