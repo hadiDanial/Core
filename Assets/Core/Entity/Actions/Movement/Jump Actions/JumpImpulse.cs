@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Core.Entities
 {
-    public class JumpRigidbody : JumpAction
+    public class JumpImpulse : JumpAction
     {
         [SerializeField] protected float jumpForce = 2.1f;
         [SerializeField] protected bool canDoubleJump = false;
