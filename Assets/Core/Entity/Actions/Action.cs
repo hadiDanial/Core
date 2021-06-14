@@ -16,7 +16,7 @@ namespace Core.Entities
         protected Rigidbody2D rb;
         protected bool hasStarted = false, isPaused = true;
         protected bool alwaysUpdate = false, activeAction = true;
-        private float timer = 0;
+        protected float timer = 0;
 
         public virtual void Initialize(Entity entity, AIDestinationSetter aiDestinationSetter)
         {
