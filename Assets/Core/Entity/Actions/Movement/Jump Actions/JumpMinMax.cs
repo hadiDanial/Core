@@ -9,7 +9,7 @@ namespace Core.Entities
         [SerializeField] protected float minJumpHeight = 1.6f, maxJumpHeight = 4.1f;
         [SerializeField] protected float jumpSpeed = 9.5f;
         [SerializeField] private float verticalSpeed;
-        protected float initialHeight, currentHeight;
+        protected float initialHeight, currentHeight, prevHeight;
         protected float finalMinPos, finalMaxPos;
         private bool goingUp = true;
         private bool isBufferJump = false;
@@ -25,6 +25,11 @@ namespace Core.Entities
             if (hasStarted)
             {
                 currentHeight = transform.position.y;
+                if(timer > 1 && Mathf.Approximately(currentHeight,prevHeight))
+                {
+                    StopAction();
+                    return;
+                }
                 if (currentHeight <= finalMinPos || (goingUp && currentHeight < finalMaxPos))
                     verticalSpeed = GetVerticalSpeed();
                 else// if (currentHeight >= finalMaxPos)
@@ -42,6 +47,7 @@ namespace Core.Entities
                     StartAction();
                 }
             }
+            prevHeight = currentHeight;
         }
 
         internal virtual float GetVerticalSpeed()
@@ -59,6 +65,7 @@ namespace Core.Entities
             else if (jumpBufferTimer > jumpBufferPeriod)
             {
                 isWaitingOnBuffer = false;
+                isBufferJump = false;
             }
         }
         public override void StartAction()
