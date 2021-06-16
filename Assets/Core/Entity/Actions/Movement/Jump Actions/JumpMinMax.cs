@@ -9,6 +9,8 @@ namespace Core.Entities
         [SerializeField] protected float minJumpHeight = 1.6f, maxJumpHeight = 4.1f;
         [SerializeField] protected float jumpSpeed = 9.5f;
         [SerializeField] private float verticalSpeed;
+        [SerializeField] private bool useJumpCurve = true;
+        [SerializeField] private AnimationCurve jumpCurve;
         protected float initialHeight, currentHeight, prevHeight;
         protected float finalMinPos, finalMaxPos;
         private bool goingUp = true;
@@ -52,7 +54,13 @@ namespace Core.Entities
 
         internal virtual float GetVerticalSpeed()
         {
-            return jumpSpeed;
+            if (useJumpCurve)
+            {
+                float b = finalMaxPos - initialHeight, c = currentHeight - initialHeight;
+                return jumpSpeed * jumpCurve.Evaluate(Mathf.Abs(c / b));
+            }
+            else
+                return jumpSpeed;
         }
 
         internal override void HandleJumpBuffer()
