@@ -9,7 +9,7 @@ namespace Core.Entities
     {
         [SerializeField, Range(0, 0.4f)]
         protected float jumpGracePeriod = 0.1f;
-        [SerializeField, Range(0, 0.2f)]
+        [SerializeField, Range(0, 0.35f)]
         protected float jumpBufferPeriod = 0.08f;
         [SerializeField] protected bool jumpAllowed = true;
 
